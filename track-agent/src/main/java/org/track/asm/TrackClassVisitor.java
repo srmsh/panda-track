@@ -7,6 +7,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
+import java.util.Arrays;
+
 public class TrackClassVisitor extends ClassVisitor implements Opcodes {
 
     private boolean isInterface;
@@ -21,8 +23,10 @@ public class TrackClassVisitor extends ClassVisitor implements Opcodes {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+
+        String[] packages = System.getProperty("panda.packages", "com/company").split(",");
         // TODO: 2019/8/28 可配置
-        if (name.contains("com/company")) {
+        if (Arrays.stream(packages).anyMatch(name::contains)) {
             isSkip = false;
         }
         super.visit(version, access, name, signature, superName, interfaces);
