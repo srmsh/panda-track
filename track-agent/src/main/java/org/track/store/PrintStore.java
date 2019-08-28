@@ -4,7 +4,7 @@ import org.track.store.model.LinkedSpan;
 
 public class PrintStore implements PandaStore {
     @Override
-    public boolean insert(LinkedSpan data) {
+    public boolean save(LinkedSpan data) {
         while (data.hasSpan()) {
             System.out.println(data.read());
         }

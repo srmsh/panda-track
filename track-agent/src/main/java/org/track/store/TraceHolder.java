@@ -31,7 +31,7 @@ public class TraceHolder {
         --count;
         if (count == 0) {
             LinkedSpan linkedSpan = local.get();
-            store.insert(linkedSpan);
+            store.save(linkedSpan);
             clear();
         } else {
             countLocal.set(count);

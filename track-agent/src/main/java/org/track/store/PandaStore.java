@@ -4,6 +4,6 @@ import org.track.store.model.LinkedSpan;
 
 public interface PandaStore {
 
-    boolean insert(LinkedSpan data);
+    boolean save(LinkedSpan data);
 
 }

@@ -8,22 +8,29 @@ import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
 
 public class TrackAop implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        try {
-            ClassReader cr = new ClassReader(className);
-            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-            TrackClassVisitor visitor = new TrackClassVisitor(cw);
-            cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-            return cw.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
+        String[] packages = System.getProperty("panda.packages", "com/company").split(",");
+        // TODO: 2019/8/28 可配置
+        if (Arrays.stream(packages).noneMatch(className::contains)) {
+            return classfileBuffer;
         }
-
-        return classfileBuffer;
+        System.out.println(className);
+        ClassReader cr;
+        try {
+            cr = new ClassReader(className);
+        } catch (IOException e) {
+            // 被代理的类
+            return classfileBuffer;
+        }
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        TrackClassVisitor visitor = new TrackClassVisitor(cw);
+        cr.accept(visitor, ClassReader.EXPAND_FRAMES);
+        return cw.toByteArray();
     }
 
 }
