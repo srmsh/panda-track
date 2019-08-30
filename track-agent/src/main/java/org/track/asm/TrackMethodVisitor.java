@@ -17,6 +17,8 @@ public class TrackMethodVisitor extends MethodVisitor {
 
     private String methodName;
 
+    private int spanData;
+
     private String owner;
 
     private AnalyzerAdapter analyzerAdapter;
@@ -59,6 +61,12 @@ public class TrackMethodVisitor extends MethodVisitor {
         linkedSpan = localVariablesSorter.newLocal(Type.getType(LinkedSpan.class));
         mv.visitMethodInsn(INVOKESTATIC, "org/track/store/TraceHolder", "get", "()Lorg/track/store/model/LinkedSpan;", false);
         mv.visitVarInsn(ASTORE, linkedSpan);
+
+        spanData = localVariablesSorter.newLocal(Type.getType(SpanData.class));
+        mv.visitTypeInsn(NEW, "org/track/store/model/SpanData");
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, "org/track/store/model/SpanData", "<init>", "()V", false);
+        mv.visitVarInsn(ASTORE, spanData);
         mv.visitCode();
     }
 
@@ -69,11 +77,7 @@ public class TrackMethodVisitor extends MethodVisitor {
             mv.visitVarInsn(LLOAD, time);
             mv.visitInsn(LSUB);
             mv.visitVarInsn(LSTORE, time);
-            int spanData = localVariablesSorter.newLocal(Type.getType(SpanData.class));
-            mv.visitTypeInsn(NEW, "org/track/store/model/SpanData");
-            mv.visitInsn(DUP);
-            mv.visitMethodInsn(INVOKESPECIAL, "org/track/store/model/SpanData", "<init>", "()V", false);
-            mv.visitVarInsn(ASTORE, spanData);
+
             mv.visitVarInsn(ALOAD, spanData);
             mv.visitLdcInsn(owner);
             mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setClassName", "(Ljava/lang/String;)V", false);

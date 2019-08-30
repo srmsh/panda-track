@@ -26,6 +26,10 @@ public class TraceHolder {
         return span;
     }
 
+    public static int getDepth() {
+        return countLocal.get();
+    }
+
     public static void countDown() {
         Integer count =  countLocal.get();
         --count;

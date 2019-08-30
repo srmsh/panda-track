@@ -1,10 +1,14 @@
 package org.track.store.model;
 
+import org.track.store.TraceHolder;
+
 public class SpanData {
     /**
      * 耗时
      */
     private long time;
+
+    private int depth;
 
     private String className;
 
@@ -17,6 +21,14 @@ public class SpanData {
     private int spanId;
 
     private int parentSpanId;
+
+    public SpanData() {
+        depth = TraceHolder.getDepth();
+    }
+
+    public int getDepth() {
+        return depth;
+    }
 
     public long getTime() {
         return time;
@@ -78,6 +90,7 @@ public class SpanData {
     public String toString() {
         return "SpanData{" +
                 "time=" + time +
+                ", depth=" + depth +
                 ", className='" + className + '\'' +
                 ", methodName='" + methodName + '\'' +
                 ", args='" + args + '\'' +
