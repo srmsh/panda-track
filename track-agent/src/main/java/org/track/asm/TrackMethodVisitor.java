@@ -1,5 +1,6 @@
 package org.track.asm;
 
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AnalyzerAdapter;
@@ -25,8 +26,12 @@ public class TrackMethodVisitor extends MethodVisitor {
 
     private LocalVariablesSorter localVariablesSorter;
 
+    private Label tryCatchStart,tryCatchEnd;
+
     TrackMethodVisitor(MethodVisitor methodVisitor) {
         super(ASM7, methodVisitor);
+        tryCatchStart = new Label();
+        tryCatchEnd = new Label();
     }
 
     void setAnalyzerAdapter(AnalyzerAdapter analyzerAdapter) {
@@ -67,31 +72,48 @@ public class TrackMethodVisitor extends MethodVisitor {
         mv.visitInsn(DUP);
         mv.visitMethodInsn(INVOKESPECIAL, "org/track/store/model/SpanData", "<init>", "()V", false);
         mv.visitVarInsn(ASTORE, spanData);
+        mv.visitLabel(tryCatchStart);
         mv.visitCode();
     }
 
     @Override
     public void visitInsn(int opcode) {
-        if (((opcode >= IRETURN && opcode <= RETURN) || opcode == ATHROW)) {
-            mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "nanoTime", "()J", false);
-            mv.visitVarInsn(LLOAD, time);
-            mv.visitInsn(LSUB);
-            mv.visitVarInsn(LSTORE, time);
-
-            mv.visitVarInsn(ALOAD, spanData);
-            mv.visitLdcInsn(owner);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setClassName", "(Ljava/lang/String;)V", false);
-            mv.visitVarInsn(ALOAD, spanData);
-            mv.visitLdcInsn(methodName);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setMethodName", "(Ljava/lang/String;)V", false);
-            mv.visitVarInsn(ALOAD, spanData);
-            mv.visitVarInsn(LLOAD, time);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setTime", "(J)V", false);
-            mv.visitVarInsn(ALOAD, linkedSpan);
-            mv.visitVarInsn(ALOAD, spanData);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/LinkedSpan", "join", "(Lorg/track/store/model/SpanData;)V", false);
-            mv.visitMethodInsn(INVOKESTATIC, "org/track/store/TraceHolder", "countDown", "()V", false);
+        if (((opcode >= IRETURN && opcode <= RETURN))) {
+            endMethodVisitor();
         }
         super.visitInsn(opcode);
+    }
+
+    private void endMethodVisitor() {
+        mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "nanoTime", "()J", false);
+        mv.visitVarInsn(LLOAD, time);
+        mv.visitInsn(LSUB);
+        mv.visitVarInsn(LSTORE, time);
+
+        mv.visitVarInsn(ALOAD, spanData);
+        mv.visitLdcInsn(owner);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setClassName", "(Ljava/lang/String;)V", false);
+        mv.visitVarInsn(ALOAD, spanData);
+        mv.visitLdcInsn(methodName);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setMethodName", "(Ljava/lang/String;)V", false);
+        mv.visitVarInsn(ALOAD, spanData);
+        mv.visitVarInsn(LLOAD, time);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/SpanData", "setTime", "(J)V", false);
+        mv.visitVarInsn(ALOAD, linkedSpan);
+        mv.visitVarInsn(ALOAD, spanData);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "org/track/store/model/LinkedSpan", "join", "(Lorg/track/store/model/SpanData;)V", false);
+        mv.visitMethodInsn(INVOKESTATIC, "org/track/store/TraceHolder", "countDown", "()V", false);
+    }
+
+    @Override
+    public void visitEnd() {
+        mv.visitLabel(tryCatchEnd);
+        mv.visitTryCatchBlock(tryCatchStart, tryCatchEnd, tryCatchEnd, null);
+
+        endMethodVisitor();
+
+        mv.visitInsn(ATHROW);
+
+        mv.visitEnd();
     }
 }

@@ -19,7 +19,6 @@ public class TrackAop implements ClassFileTransformer {
         if (Arrays.stream(packages).noneMatch(className::contains)) {
             return classfileBuffer;
         }
-        System.out.println(className);
         ClassReader cr;
         try {
             cr = new ClassReader(className);
