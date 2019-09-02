@@ -4,7 +4,24 @@ import org.track.store.model.LinkedSpan;
 
 public class TraceHolder {
 
-    private static PandaStore store = new PrintStore();
+    private static PandaStore store;
+
+    static {
+        String storeType = System.getProperty("storeType", "file");
+
+        switch (storeType) {
+            case "file":
+            default:
+                store = new FileStore();
+                break;
+            case "print":
+                store = new PrintStore();
+                break;
+        }
+
+        store.start();
+
+    }
 
     private static ThreadLocal<LinkedSpan> local = new ThreadLocal<>();
 
