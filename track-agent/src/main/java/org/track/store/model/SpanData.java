@@ -16,7 +16,7 @@ public class SpanData {
 
     private String args;
 
-    private int traceId;
+    private String traceId;
 
     private int spanId;
 
@@ -62,11 +62,11 @@ public class SpanData {
         this.args = args;
     }
 
-    public int getTraceId() {
+    public String getTraceId() {
         return traceId;
     }
 
-    public void setTraceId(int traceId) {
+    public void setTraceId(String traceId) {
         this.traceId = traceId;
     }
 

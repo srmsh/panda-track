@@ -1,6 +1,7 @@
 package org.track.store;
 
 import org.track.store.model.LinkedSpan;
+import org.track.store.model.SpanData;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -51,8 +52,12 @@ public class FileStore implements PandaStore {
 
                     LinkedSpan span = queue.take();
 
+                    String traceId = UUID.randomUUID().toString();
+
                     while (span.hasSpan()) {
-                        spanJson.append(span.read().toString()).append("\n");
+                        SpanData data = span.read();
+                        data.setTraceId(traceId);
+                        spanJson.append(data.toString()).append("\n");
                     }
 
                     ByteBuffer buffer = ByteBuffer.wrap(spanJson.toString().getBytes());

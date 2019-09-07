@@ -1,12 +1,17 @@
 package org.track.store.model;
 
+/**
+ * 线程绑定   目前不会有并发问题
+ */
 public class LinkedSpan {
 
-    private transient Node<SpanData> first;
+    private Node<SpanData> first;
 
-    private transient Node<SpanData> last;
+    private Node<SpanData> last;
 
-    private transient long id;
+    private int size = 0;
+
+    private long id;
 
     static final class Node<SpanData> {
 
@@ -26,12 +31,16 @@ public class LinkedSpan {
     }
 
     public void join(SpanData data) {
+        int prevSize = size++;
+        data.setSpanId(size);
         Node<SpanData> newLast = new Node<>(data);
         if (null == first) {
+            data.setParentSpanId(size);
             first = newLast;
             last = newLast;
             return;
         }
+        data.setParentSpanId(prevSize);
         Node<SpanData> oldLast = last;
         newLast.prev = oldLast;
         last = newLast;
