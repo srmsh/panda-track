@@ -9,18 +9,12 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
-public class FileStore implements PandaStore {
+public class FileStore extends AsyncStore {
 
     private static AsynchronousFileChannel fileChannel;
 
-    private volatile boolean started = false;
-
     private static long projectedSize;
-
-    private BlockingQueue<LinkedSpan> queue = new LinkedBlockingQueue<>();
 
     private static String filePathDefault = "./" + UUID.randomUUID().toString() + "-track.log";
 
@@ -32,44 +26,26 @@ public class FileStore implements PandaStore {
             fileChannel = AsynchronousFileChannel.open(Paths.get(filePath), StandardOpenOption.CREATE_NEW,
                     StandardOpenOption.READ, StandardOpenOption.WRITE);
             projectedSize = fileChannel.size();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
     }
 
     @Override
-    public boolean save(LinkedSpan data) {
-        return queue.offer(data);
-    }
+    public void report(LinkedSpan span) {
+        StringBuilder spanJson = new StringBuilder();
 
-    public void start() {
-        started = true;
-        new Thread(() -> {
-            while (started) {
-                try {
+        String traceId = UUID.randomUUID().toString();
 
-                    StringBuilder spanJson = new StringBuilder();
+        while (span.hasSpan()) {
+            SpanData data = span.read();
+            data.setTraceId(traceId);
+            spanJson.append(data.toString()).append("\n");
+        }
 
-                    LinkedSpan span = queue.take();
+        ByteBuffer buffer = ByteBuffer.wrap(spanJson.toString().getBytes());
 
-                    String traceId = UUID.randomUUID().toString();
+        fileChannel.write(buffer, projectedSize);
 
-                    while (span.hasSpan()) {
-                        SpanData data = span.read();
-                        data.setTraceId(traceId);
-                        spanJson.append(data.toString()).append("\n");
-                    }
-
-                    ByteBuffer buffer = ByteBuffer.wrap(spanJson.toString().getBytes());
-
-                    fileChannel.write(buffer, projectedSize);
-
-                    projectedSize += buffer.remaining();
-
-                } catch (Throwable ignored) {
-                    //防御性容错
-                }
-            }
-        }).start();
+        projectedSize += buffer.remaining();
     }
 }

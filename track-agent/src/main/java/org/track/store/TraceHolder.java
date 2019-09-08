@@ -1,5 +1,6 @@
 package org.track.store;
 
+import org.track.store.http.HttpStore;
 import org.track.store.model.LinkedSpan;
 
 public class TraceHolder {
@@ -17,6 +18,8 @@ public class TraceHolder {
             case "print":
                 store = new PrintStore();
                 break;
+            case "http":
+                store = new HttpStore();
         }
 
         store.start();
