@@ -17,6 +17,7 @@ private open class PandaRouter {
     open fun responseRouterFunction(): RouterFunction<ServerResponse> {
         return RouterFunctions
                 .route(RequestPredicates.POST("/panda/collect").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)), HandlerFunction {ServerResponse.ok().body(collectHandler.collect(it)) })
+                .andRoute(RequestPredicates.GET("/panda/findAll").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)), HandlerFunction { ServerResponse.ok().body(collectHandler.findSpanData(it)) })
     }
 
     @Bean

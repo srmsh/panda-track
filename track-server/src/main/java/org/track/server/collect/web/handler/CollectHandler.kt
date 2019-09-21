@@ -20,6 +20,10 @@ open class CollectHandler {
         return spanDataRepository.saveAll(request.bodyToFlux(SpanData::class.java))
     }
 
+    fun findSpanData(request: ServerRequest): Flux<SpanData> {
+        return spanDataRepository.findAll();
+    }
+
     fun info(request: ServerRequest): Mono<ServerResponse> {
         return ServerResponse.ok().body(BodyInserters.fromObject(request.queryParams()))
     }
