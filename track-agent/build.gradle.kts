@@ -9,4 +9,8 @@ tasks.withType<Jar> {
     manifest {
         attributes(Pair("Premain-Class", "org.track.TrackAgent"))
     }
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
 }
